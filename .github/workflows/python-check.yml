@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - 'free_ecom_icp_lead_finder.py'
+      - 'ecom_icp_researcher.py'
       - 'requirements.txt'
       - '.github/workflows/python-check.yml'
   workflow_dispatch:
@@ -15,4 +16,4 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile Python source
-        run: python -m py_compile free_ecom_icp_lead_finder.py
+        run: python -m py_compile free_ecom_icp_lead_finder.py ecom_icp_researcher.py
