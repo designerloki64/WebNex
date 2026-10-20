@@ -215,15 +215,20 @@ def robots_can_fetch(base_url: str, url: str, session: requests.Session, cache: 
         robots_url = urljoin(base_url, "/robots.txt")
         try:
             response = session.get(robots_url, timeout=5)
-            if response.status_code < 400 and "user-agent" in response.text.lower():
+            if response.status_code in {404, 410}:
+                # A missing robots.txt has no crawl directives.
+                cache[base_url] = "allow"
+            elif response.status_code < 400 and "user-agent" in response.text.lower():
                 parser.parse(response.text.splitlines())
                 cache[base_url] = parser
             else:
+                # Be conservative for denied, rate-limited, or ambiguous responses.
                 cache[base_url] = None
         except requests.RequestException:
             cache[base_url] = None
     parser = cache[base_url]
-    # If robots.txt cannot be retrieved, do not attempt aggressive crawling.
+    if parser == "allow":
+        return True
     return parser.can_fetch(AGENT, url) if parser is not None else False
 
 
@@ -445,6 +450,20 @@ def research_companies(limit: int, offset: int) -> int:
                 break
         review_rows.append(current)
         print(f"[research] {idx}/{len(selected)}: {company.get('company_name','')} | public emails={len(public_emails)} | profile candidates={len(person_matches)}")
+        # De-duplicate contacts when a batch is rerun.
+        seen_contact_rows = set()
+        deduped_contacts = []
+        for contact in contact_rows:
+            key = (
+                contact.get("website", "").lower(),
+                contact.get("page_url", ""),
+                contact.get("public_email", "").lower(),
+                contact.get("public_phone", ""),
+            )
+            if key not in seen_contact_rows:
+                seen_contact_rows.add(key)
+                deduped_contacts.append(contact)
+        contact_rows = deduped_contacts
         write_csv(ROOT / "ecom_public_contacts.csv", contact_rows, CONTACT_FIELDS)
         write_csv(ROOT / "ecom_review_queue.csv", review_rows, RESEARCH_FIELDS + ["research_completed"])
     print("Saved ecom_public_contacts.csv and ecom_review_queue.csv.")
