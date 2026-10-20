@@ -1,6 +1,6 @@
 # WebNex: Free Ecommerce ICP Research
 
-A no-paid-API Python workflow for discovering ecommerce brand candidates in the United States and Canada, collecting contact information published on company-owned sites, finding decision-maker profile **links** via public search snippets, and building an evidence-backed review queue.
+A no-paid-API Python workflow for discovering ecommerce brand candidates in the United States and Canada, collecting contact information published on company-owned sites, finding decision-maker profile links via public search snippets, and building an evidence-backed review queue.
 
 ## What it does
 
@@ -17,9 +17,9 @@ A no-paid-API Python workflow for discovering ecommerce brand candidates in the 
 
 There is no legitimate one-click, completely free route that guarantees 1,000 currently advertising companies with 51+ employees and verified person-level email/phone data from the entire internet. Public search providers may rate-limit requests, and public evidence may be missing.
 
-This tool **does not** scrape Apollo, LinkedIn, or login-gated pages; bypass CAPTCHAs, anti-bot systems, paywalls or usage caps; rotate proxies to evade blocks; or probe SMTP servers to guess mailbox existence. Apollo's terms prohibit automated scraping and attempts to circumvent platform limits. Use the company's supported exports and methods where authorized.
+This tool does not scrape Apollo, LinkedIn, or login-gated pages; bypass CAPTCHAs, anti-bot systems, paywalls or usage caps; rotate proxies to evade blocks; or probe SMTP servers to guess mailbox existence. Apollo's terms prohibit automated scraping and attempts to circumvent platform limits. Use the company's supported exports and methods where authorized.
 
-A record is not marked “qualified” because a search result suggested it might fit. Search clues require review.
+A record is not marked "qualified" because a search result suggested it might fit. Search clues require review.
 
 ## Requirements
 
@@ -32,14 +32,14 @@ A record is not marked “qualified” because a search result suggested it migh
 
 Download the repository ZIP from GitHub and extract it, or clone the repository.
 
-\`\`\`powershell
+```powershell
 git clone https://github.com/designerloki64/WebNex.git
 cd WebNex
 
 py -m venv .venv
-.\.venv\\Scripts\\python.exe -m pip install --upgrade pip
-.\.venv\\Scripts\\python.exe -m pip install -r requirements.txt
-\`\`\`
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+```
 
 If git is not installed, download the ZIP here:
 https://github.com/designerloki64/WebNex/archive/refs/heads/main.zip
@@ -48,15 +48,15 @@ https://github.com/designerloki64/WebNex/archive/refs/heads/main.zip
 
 Test with 100 candidate domains first:
 
-\`\`\`powershell
-.\.venv\\Scripts\\python.exe ecom_icp_researcher.py discover --target 100
-\`\`\`
+```powershell
+.\.venv\Scripts\python.exe ecom_icp_researcher.py discover --target 100
+```
 
 Then expand the discovery target:
 
-\`\`\`powershell
-.\.venv\\Scripts\\python.exe ecom_icp_researcher.py discover --target 1000
-\`\`\`
+```powershell
+.\.venv\Scripts\python.exe ecom_icp_researcher.py discover --target 1000
+```
 
 Output: ecom_companies.csv
 
@@ -64,9 +64,9 @@ The number is a candidate target, not a promise. The script stops if it exhausts
 
 ## Step 2 — Research the first 25 companies
 
-\`\`\`powershell
-.\.venv\\Scripts\\python.exe ecom_icp_researcher.py research --limit 25 --offset 0
-\`\`\`
+```powershell
+.\.venv\Scripts\python.exe ecom_icp_researcher.py research --limit 25 --offset 0
+```
 
 Output files:
 
@@ -75,9 +75,9 @@ Output files:
 
 Research the next batch:
 
-\`\`\`powershell
-.\.venv\\Scripts\\python.exe ecom_icp_researcher.py research --limit 25 --offset 25
-\`\`\`
+```powershell
+.\.venv\Scripts\python.exe ecom_icp_researcher.py research --limit 25 --offset 25
+```
 
 Continue with offsets 50, 75, etc. The review queue preserves fields you've already filled in when you rerun later batches.
 
@@ -101,9 +101,9 @@ Open ecom_review_queue.csv in Excel. For every viable candidate:
 
 ## Step 4 — Export only reviewed leads
 
-\`\`\`powershell
-.\.venv\\Scripts\\python.exe ecom_icp_researcher.py qualify
-\`\`\`
+```powershell
+.\.venv\Scripts\python.exe ecom_icp_researcher.py qualify
+```
 
 Output: qualified_ecommerce_leads.csv
 
@@ -111,18 +111,18 @@ The final export requires all of these: confirmed US/Canada location, more than 
 
 To allow a different freshness window for advertising evidence:
 
-\`\`\`powershell
-.\.venv\\Scripts\\python.exe ecom_icp_researcher.py qualify --max-ad-age-days 14
-\`\`\`
+```powershell
+.\.venv\Scripts\python.exe ecom_icp_researcher.py qualify --max-ad-age-days 14
+```
 
 ## Output columns
 
-The review sheet separates **raw clues** from **confirmed facts**. It includes the company website, public contact candidates and source pages, LinkedIn profile candidate/search result, employee evidence, ad-evidence candidates, confirmed decision-maker fields, and verification/review status.
+The review sheet separates raw clues from confirmed facts. It includes the company website, public contact candidates and source pages, LinkedIn profile candidate/search result, employee evidence, ad-evidence candidates, confirmed decision-maker fields, and verification/review status.
 
 ## Troubleshooting
 
 - If py is not recognized, install Python 3.11+ and reopen PowerShell.
-- If package installation fails, run .\.venv\\Scripts\\python.exe -m pip install --upgrade pip and retry.
+- If package installation fails, run .\.venv\Scripts\python.exe -m pip install --upgrade pip and retry.
 - If there are few search results or search warnings, reduce the target, wait, and try later. Do not bypass a block or CAPTCHA.
 - If contact CSVs are empty, the websites may not publish those details or may disallow automated crawling.
 - If your output has fewer than 1,000 qualified leads, that's expected when evidence/contact verification is incomplete. The tool will not label unverified leads as qualified.
