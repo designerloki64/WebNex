@@ -431,8 +431,15 @@ def research_companies(limit: int, offset: int) -> int:
         }
         for old in review_rows:
             if old.get("website", "").lower() == site.lower():
+                # Preserve human review decisions and verified fields across later batches.
+                # Refresh only the raw public-contact candidates and fresh search snippets.
+                refreshable = {
+                    "public_email_candidates", "public_phone_candidates",
+                    "employee_evidence_snippet", "decision_maker_search_source_url",
+                    "decision_maker_search_snippet", "research_completed",
+                }
                 for key, value in old.items():
-                    if value and key not in {"public_email_candidates", "public_phone_candidates", "employee_evidence_url", "employee_evidence_snippet", "ad_evidence_url", "ad_platform", "decision_maker_linkedin_url", "decision_maker_search_snippet", "research_completed"}:
+                    if value and key not in refreshable:
                         current[key] = value
                 review_rows.remove(old)
                 break
