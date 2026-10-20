@@ -172,20 +172,26 @@ def title_to_name(title: str, domain: str) -> str:
     return name[:140] or domain
 
 def robots_allowed(base_url: str, url: str, session: requests.Session) -> bool:
-    # Missing/unavailable robots.txt is not treated as evidence that all crawling is allowed;
-    # this conservative crawler checks explicit rules whenever robots.txt is accessible.
+    # Cache robots.txt once per site to avoid repeatedly requesting it for every page.
     from urllib.robotparser import RobotFileParser
-    robots_url = urljoin(base_url, "/robots.txt")
-    try:
-        response = session.get(robots_url, timeout=5)
-        if response.status_code < 400 and "user-agent" in response.text.lower():
-            parser = RobotFileParser()
-            parser.set_url(robots_url)
-            parser.parse(response.text.splitlines())
-            return parser.can_fetch(USER_AGENT, url)
-    except requests.RequestException:
-        pass
-    return True
+    cache = getattr(session, "_robots_cache", None)
+    if cache is None:
+        cache = {}
+        setattr(session, "_robots_cache", cache)
+    if base_url not in cache:
+        robots_url = urljoin(base_url, "/robots.txt")
+        parser = None
+        try:
+            response = session.get(robots_url, timeout=5)
+            if response.status_code < 400 and "user-agent" in response.text.lower():
+                parser = RobotFileParser()
+                parser.set_url(robots_url)
+                parser.parse(response.text.splitlines())
+        except requests.RequestException:
+            pass
+        cache[base_url] = parser
+    parser = cache[base_url]
+    return parser.can_fetch(USER_AGENT, url) if parser is not None else True
 
 def valid_public_phone_candidates(text: str, country_guess: str) -> list[str]:
     default_region = "CA" if country_guess == "Canada" else "US"
@@ -327,7 +333,13 @@ def write_csv(path: Path, rows: list[dict], fields: list[str]):
         writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
         writer.writeheader()
         for row in rows:
-            writer.writerow({field: row.get(field, "") for field in fields})
+            normalized = {}
+            for field in fields:
+                value = row.get(field, "")
+                if isinstance(value, (list, tuple, set)):
+                    value = "; ".join(str(item) for item in value if str(item).strip())
+                normalized[field] = value
+            writer.writerow(normalized)
 
 def merge_old_review(new_rows: list[dict], old_rows: list[dict]):
     old_by_domain = {r.get("company_domain", "").lower(): r for r in old_rows}
